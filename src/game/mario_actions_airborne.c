@@ -71,7 +71,7 @@ s32 check_fall_damage(struct MarioState *m, u32 hardFallAction) {
     if (m->action != ACT_TWIRLING && m->floor->type != SURFACE_BURNING) {
         if (m->vel[1] < -55.0f) {
             if (fallHeight > FALL_DAMAGE_HEIGHT_LARGE) {
-                m->hurtCounter += (m->flags & MARIO_CAP_ON_HEAD) ? 16 : 24;
+                m->hurtCounter += (m->flags & MARIO_CAP_ON_HEAD) ? 15 : 23;
 #if ENABLE_RUMBLE
                 queue_rumble_data(5, 80);
 #endif
@@ -452,6 +452,12 @@ s32 act_double_jump(struct MarioState *m) {
         return TRUE;
     }
 
+    if (m->curCharacter == 2 || m->curCharacter == 3)  {
+        if (m->input & INPUT_A_DOWN && m->vel[1] < 0.0f && gMarioState->action != ACT_FLUTTER) {
+            return set_mario_action(m, ACT_FLUTTER, 0);
+        }
+    }
+
     if (m->input & INPUT_Z_PRESSED) {
         return set_mario_action(m, ACT_GROUND_POUND, 0);
     }
@@ -488,17 +494,41 @@ s32 act_triple_jump(struct MarioState *m) {
 }
 
 s32 act_backflip(struct MarioState *m) {
+    s16 wallAngle;
+
     if (m->input & INPUT_Z_PRESSED) {
         return set_mario_action(m, ACT_GROUND_POUND, 0);
     }
 
     play_mario_sound(m, SOUND_ACTION_TERRAIN_JUMP, SOUND_MARIO_YAH_WAH_HOO);
-    common_air_action_step(m, ACT_BACKFLIP_LAND, MARIO_ANIM_BACKFLIP, 0);
+
+
+    if (m->vel[1] < 0.0f) { //If player is falling
+        if (m->curCharacter == 2) {
+            return set_mario_action(m, ACT_TWIRLING, 0); // if Luigi, do twirl
+        }
+
+        if (m->wall != NULL) {
+            mario_set_forward_vel(m, 0.0f);
+            wallAngle = m->wallYaw;
+            m->faceAngle[1] = wallAngle + 0x8000; // Sets Mario's angle to the wall's angle
+
+            if (m->curCharacter == 0) {
+                return set_mario_action(m, ACT_AIR_HIT_WALL, 0); //if Mario, do wall-slide
+            }
+
+        }
+    }
+
+    common_air_action_step(m, ACT_BACKFLIP_LAND, MARIO_ANIM_BACKFLIP, 0); //do same as original game
+    
+
 #if ENABLE_RUMBLE
     if (m->action == ACT_BACKFLIP_LAND) {
         queue_rumble_data(5, 40);
     }
 #endif
+
     play_flip_sounds(m, 2, 3, 17);
     return FALSE;
 }
@@ -1260,39 +1290,92 @@ s32 act_getting_blown(struct MarioState *m) {
 }
 
 s32 act_air_hit_wall(struct MarioState *m) {
+    s16 wallAngle;
+
+    if (m->wall != NULL) {
+        wallAngle = m->wallYaw;// Sets Mario's angle to the wall's angle
+    }
+
     if (m->heldObj != NULL) {
         mario_drop_held_object(m);
     }
 
-    if (++(m->actionTimer) <= 2) {
-        if (m->input & INPUT_A_PRESSED) {
-            m->vel[1] = 52.0f;
-            m->faceAngle[1] += 0x8000;
-            return set_mario_action(m, ACT_WALL_KICK_AIR, 0);
-        }
-    } else if (m->forwardVel >= 38.0f) {
-        m->wallKickTimer = 5;
-        if (m->vel[1] > 0.0f) {
-            m->vel[1] = 0.0f;
-        }
-
-        m->particleFlags |= PARTICLE_VERTICAL_STAR;
-        return set_mario_action(m, ACT_BACKWARD_AIR_KB, 0);
-    } else {
-        m->wallKickTimer = 5;
-        if (m->vel[1] > 0.0f) {
-            m->vel[1] = 0.0f;
-        }
-
-        if (m->forwardVel > 8.0f) {
-            mario_set_forward_vel(m, -8.0f);
-        }
-        return set_mario_action(m, ACT_SOFT_BONK, 0);
-    }
-
     set_mario_animation(m, MARIO_ANIM_START_WALLKICK);
 
-    return TRUE;
+    if (m->curCharacter == 0) { // if current character is Mario, do wall slides
+        switch (perform_air_step(m, 0)) {
+            case AIR_STEP_NONE:
+                mario_set_forward_vel(m, 0.0f);
+                m->particleFlags |= PARTICLE_DUST;
+                play_sound(SOUND_MOVING_TERRAIN_SLIDE, m->marioObj->header.gfx.cameraToObject);
+                if (m->input & INPUT_A_PRESSED) {
+                    m->vel[0] = 0.0f;
+                    m->vel[1] = 52.0f;
+                    m->vel[2] = 0.0f;
+                    return set_mario_action(m, ACT_WALL_KICK_AIR, 0);
+                }
+            break;
+
+            case AIR_STEP_LANDED:
+                m->faceAngle[1] += 0x8000;
+                return set_mario_action(m, ACT_IDLE, 0);
+            break;
+
+            case AIR_STEP_HIT_WALL:
+                mario_set_forward_vel(m, 0.0f);
+                m->faceAngle[1] = wallAngle;
+                m->vel[0] = 0.0f;
+                m->vel[1] = -6.0f;
+                m->vel[2] = 0.0f;
+            break;
+
+            case AIR_STEP_HIT_LAVA_WALL:
+                lava_boost_on_wall(m);
+            break;
+        }
+
+        return FALSE;
+
+    } else { // else, do same as original code
+
+        if (++(m->actionTimer) <= 2) {
+            
+            if (m->input & INPUT_A_PRESSED) {
+                m->vel[1] = 52.0f;
+                m->faceAngle[1] += 0x8000;
+
+                return set_mario_action(m, ACT_WALL_KICK_AIR, 0);
+            }
+
+        } else if (m->forwardVel >= 38.0f) {
+            m->wallKickTimer = 5;
+            
+            if (m->vel[1] > 0.0f) {
+                m->vel[1] = 0.0f;
+            }
+
+            m->particleFlags |= PARTICLE_VERTICAL_STAR;
+
+            return set_mario_action(m, ACT_BACKWARD_AIR_KB, 0);
+        } else {
+            m->wallKickTimer = 5;
+            
+            if (m->vel[1] > 0.0f) {
+                m->vel[1] = 0.0f;
+            }
+
+            if (m->forwardVel > 8.0f) {
+                mario_set_forward_vel(m, -8.0f);
+            }
+
+            return set_mario_action(m, ACT_SOFT_BONK, 0);
+        }
+
+        set_mario_animation(m, MARIO_ANIM_START_WALLKICK);
+
+        return TRUE;
+    }
+
 }
 
 s32 act_forward_rollout(struct MarioState *m) {
@@ -1991,6 +2074,74 @@ s32 check_common_airborne_cancels(struct MarioState *m) {
     return FALSE;
 }
 
+s32 act_flutter(struct MarioState *m) {
+    play_sound_if_no_flag(m, SOUND_MARIO_WHOA, MARIO_MARIO_SOUND_PLAYED);
+    set_mario_anim_with_accel(m, MARIO_ANIM_RUNNING, 10.0f * 0x10000);
+    play_far_fall_sound(m);
+
+    if (m->curCharacter == 3) {
+        if (m->actionTimer < 60) {
+            m->vel[1] -= m->vel[1] * 1.75f;
+            m->actionTimer++;
+        } else {
+            return set_mario_action(m, ACT_FREEFALL, 0);
+        }
+    } else {
+        m->vel[1] -= m->vel[1] * 0.25f;
+    }
+    
+    if (!(m->input & INPUT_A_DOWN)) {
+        if (m->curCharacter == 3) {
+            return set_mario_action(m, ACT_FLUTTER_FALL, 0);
+        } else {
+            return set_mario_action(m, ACT_FREEFALL, 0);
+        }
+    }
+
+    if (m->input & INPUT_B_PRESSED) {
+        return set_mario_action(m, ACT_JUMP_KICK, 0);
+    }
+
+    if (m->input & INPUT_Z_PRESSED) {
+        return set_mario_action(m, ACT_GROUND_POUND, 0);
+    }
+
+    common_air_action_step(m, ACT_FREEFALL_LAND, MARIO_ANIM_RUNNING, 0);
+
+    return FALSE;
+}
+
+s32 act_flutter_fall(struct MarioState *m) {
+    s32 animation = MARIO_ANIM_GENERAL_FALL;
+
+    if (m->input & INPUT_A_DOWN && m->vel[1] < 0.0f && m->curCharacter == 2) {
+        return set_mario_action(m, ACT_FLUTTER, 0);
+    }
+
+    if (m->input & INPUT_B_PRESSED) {
+        return set_mario_action(m, ACT_DIVE, 0);
+    }
+
+    if (m->input & INPUT_Z_PRESSED) {
+        return set_mario_action(m, ACT_GROUND_POUND, 0);
+    }
+
+    switch (m->actionArg) {
+        case ACT_ARG_FREEFALL_GENERAL:
+            animation = MARIO_ANIM_GENERAL_FALL;
+            break;
+        case ACT_ARG_FREEFALL_FROM_SLIDE:
+            animation = MARIO_ANIM_FALL_FROM_SLIDE;
+            break;
+        case ACT_ARG_FREEFALL_FROM_SLIDE_KICK:
+            animation = MARIO_ANIM_FALL_FROM_SLIDE_KICK;
+            break;
+    }
+
+    common_air_action_step(m, ACT_FREEFALL_LAND, animation, AIR_STEP_CHECK_LEDGE_GRAB);
+    return FALSE;
+}
+
 s32 mario_execute_airborne_action(struct MarioState *m) {
     u32 cancel = FALSE;
 
@@ -2049,6 +2200,8 @@ s32 mario_execute_airborne_action(struct MarioState *m) {
         case ACT_RIDING_HOOT:          cancel = act_riding_hoot(m);          break;
         case ACT_TOP_OF_POLE_JUMP:     cancel = act_top_of_pole_jump(m);     break;
         case ACT_VERTICAL_WIND:        cancel = act_vertical_wind(m);        break;
+        case ACT_FLUTTER:              cancel = act_flutter(m);              break;
+        case ACT_FLUTTER_FALL:         cancel = act_flutter_fall(m);         break;
     }
     /* clang-format on */
 

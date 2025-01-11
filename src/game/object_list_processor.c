@@ -280,6 +280,36 @@ void bhv_mario_update(void) {
 
         i++;
     }
+
+    if (gMarioState->controller->buttonPressed & L_TRIG) {
+        if (gMarioState->curCharacter < 4){
+            gMarioState->curCharacter++;
+        } else {
+            gMarioState->curCharacter = 0;
+        }
+    }
+
+    switch(gMarioState->curCharacter) {
+    case 0:
+        cur_obj_set_model(MODEL_MARIO);
+        break;
+    case 1:
+        cur_obj_set_model(MODEL_WARIO);
+        break;
+    case 2:
+        cur_obj_set_model(MODEL_LUIGI);
+        break;
+    case 3:
+    //YOSHI, TO BE ADDED
+        cur_obj_set_model(MODEL_PLAYER_YOSHI);
+        break;
+    case 4:
+    //WALUIGI, TO BE ADDED
+        cur_obj_set_model(MODEL_LUIGI);
+        break;
+    default:
+        cur_obj_set_model(MODEL_MARIO);
+    }
 }
 
 /**

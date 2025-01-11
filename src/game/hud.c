@@ -155,6 +155,7 @@ void render_hud_small_tex_lut(s32 x, s32 y, Texture *texture) {
  */
 void render_power_meter_health_segment(s16 numHealthWedges) {
     Texture *(*healthLUT)[] = segmented_to_virtual(&power_meter_health_segments_lut);
+
     Gfx *tempGfxHead = gDisplayListHead;
 
     gDPPipeSync(tempGfxHead++);
@@ -404,9 +405,31 @@ void render_hud_breath_meter(void) {
  * Renders the amount of lives Mario has.
  */
 void render_hud_mario_lives(void) {
-    print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), HUD_TOP_Y, ","); // 'Mario Head' glyph
-    print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(38), HUD_TOP_Y, "*"); // 'X' glyph
-    print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(54), HUD_TOP_Y, "%d", gHudDisplay.lives);
+
+    switch(gMarioState->curCharacter) {
+    case 0:
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), HUD_TOP_Y, ",");
+        break;
+    case 1:
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), HUD_TOP_Y, "[");
+        break;
+    case 2:
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), HUD_TOP_Y, "]");
+        break;
+    case 3:
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), HUD_TOP_Y, "<");
+        break;
+    case 4:
+    //WALUIGI, TO BE ADDED
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), HUD_TOP_Y, ">");
+        break;
+    default:
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), HUD_TOP_Y, ",");
+        break;
+    }
+
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(38), HUD_TOP_Y, "*"); // 'X' glyph
+        print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(54), HUD_TOP_Y, "%d", gHudDisplay.lives);
 }
 
 #ifdef VANILLA_STYLE_CUSTOM_DEBUG
@@ -511,7 +534,27 @@ void render_hud_camera_status(void) {
 
     switch (sCameraHUD.status & CAM_STATUS_MODE_GROUP) {
         case CAM_STATUS_MARIO:
-            render_hud_tex_lut(x + 16, y, (*cameraLUT)[GLYPH_CAM_MARIO_HEAD]);
+            switch(gMarioState->curCharacter) {
+                case 0:
+                    print_text(x+16, SCREEN_HEIGHT - y - 16, ",");
+                    break;
+                case 1:
+                    print_text(x+16, SCREEN_HEIGHT - y - 16, "[");
+                    break;
+                case 2:
+                    print_text(x+16, SCREEN_HEIGHT - y - 16, "]");
+                    break;
+                case 3:
+                    print_text(x+16, SCREEN_HEIGHT - y - 16, "<");
+                    break;
+                case 4:
+                //WALUIGI, TO BE ADDED
+                    print_text(x+16, y, ">");
+                    break;
+                default:
+                    print_text(x+16, y, ",");
+                    break;
+                }
             break;
         case CAM_STATUS_LAKITU:
             render_hud_tex_lut(x + 16, y, (*cameraLUT)[GLYPH_CAM_LAKITU_HEAD]);

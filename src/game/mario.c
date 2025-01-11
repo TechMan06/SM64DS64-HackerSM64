@@ -750,8 +750,13 @@ u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actionArg) {
     }
 
     switch (action) {
+        //FULL JUMP HEIGHT LIST
         case ACT_DOUBLE_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 52.0f, 0.25f);
+            if (m->curCharacter == 1) {
+                set_mario_y_vel_based_on_fspeed(m, 40.0f, 0.25f);
+            } else {
+                set_mario_y_vel_based_on_fspeed(m, 52.0f, 0.25f);
+            }
             m->forwardVel *= 0.8f;
             break;
 
@@ -762,7 +767,11 @@ u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actionArg) {
             break;
 
         case ACT_TRIPLE_JUMP:
+        if (m->curCharacter == 1) {
             set_mario_y_vel_based_on_fspeed(m, 69.0f, 0.0f);
+        } else{
+            set_mario_y_vel_based_on_fspeed(m, 72.0f, 0.0f);
+        }
             m->forwardVel *= 0.8f;
             break;
 
@@ -789,7 +798,11 @@ u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actionArg) {
         case ACT_JUMP:
         case ACT_HOLD_JUMP:
             m->marioObj->header.gfx.animInfo.animID = -1;
-            set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.25f);
+            if (m->curCharacter == 1) {
+                set_mario_y_vel_based_on_fspeed(m, 33.0f, 0.25f);
+            } else {
+                set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.25f);
+            }
             m->forwardVel *= 0.8f;
             break;
 
@@ -1706,8 +1719,7 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
     s32 inLoop = TRUE;
 
     // Updates once per frame:
-    vec3f_get_dist_and_angle(gMarioState->prevPos, gMarioState->pos, &gMarioState->moveSpeed, &gMarioState->movePitch, &gMarioState->moveYaw);
-    vec3f_get_lateral_dist(gMarioState->prevPos, gMarioState->pos, &gMarioState->lateralSpeed);
+    vec3f_get_dist_and_lateral_dist_and_angle(gMarioState->prevPos, gMarioState->pos, &gMarioState->moveSpeed, &gMarioState->lateralSpeed, &gMarioState->movePitch, &gMarioState->moveYaw);
     vec3f_copy(gMarioState->prevPos, gMarioState->pos);
 
     if (gMarioState->action) {

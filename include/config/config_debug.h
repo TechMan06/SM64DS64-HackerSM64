@@ -31,7 +31,7 @@
 /**
  * Enables debug level select. Hold L while the game boots to turn it on.
  */
-//#define DEBUG_LEVEL_SELECT
+#define DEBUG_LEVEL_SELECT
 
 /**
  * Enables debug free move (D-pad up to enter, A to exit).
@@ -52,7 +52,7 @@
  * A vanilla style debug mode. It doesn't rely on a text engine, but it's much less powerful that PUPPYPRINT_DEBUG.
  * Press D-pad left to show the debug UI.
  */
-// #define VANILLA_STYLE_CUSTOM_DEBUG
+#define VANILLA_STYLE_CUSTOM_DEBUG
 
 /**
  * Visual debug enables some collision visuals. Tapping Right on the D-pad will cycle between visual hitboxes, visual surfaces, both, and neither.
@@ -79,7 +79,7 @@
 /**
  * Includes vanilla debug functionality.
  */
-// #define VANILLA_DEBUG
+//#define VANILLA_DEBUG
 
 /**
  * Forces a crash when the game starts. Useful for debugging the crash screen.

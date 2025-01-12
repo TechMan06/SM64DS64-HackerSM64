@@ -652,9 +652,7 @@ void render_hud(void) {
         }
 
 #ifdef VANILLA_STYLE_CUSTOM_DEBUG
-        if (gCustomDebugMode) {
-            render_debug_mode();
-        }
+        render_debug_mode();
 #endif
     }
 }

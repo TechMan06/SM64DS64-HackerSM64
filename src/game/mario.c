@@ -763,14 +763,20 @@ u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actionArg) {
         case ACT_BACKFLIP:
             m->marioObj->header.gfx.animInfo.animID = -1;
             m->forwardVel = -16.0f;
-            set_mario_y_vel_based_on_fspeed(m, 62.0f, 0.0f);
+            
+            if (m->curCharacter == 1) {
+                set_mario_y_vel_based_on_fspeed(m, 71.0f, 0.0f);
+            } else {
+                set_mario_y_vel_based_on_fspeed(m, 62.0f, 0.0f);
+            }
+            
             break;
 
         case ACT_TRIPLE_JUMP:
         if (m->curCharacter == 1) {
             set_mario_y_vel_based_on_fspeed(m, 69.0f, 0.0f);
         } else{
-            set_mario_y_vel_based_on_fspeed(m, 72.0f, 0.0f);
+            set_mario_y_vel_based_on_fspeed(m, 71.0f, 0.0f);
         }
             m->forwardVel *= 0.8f;
             break;

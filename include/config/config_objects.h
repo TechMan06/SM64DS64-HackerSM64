@@ -51,7 +51,7 @@
 /**
  * Uses intendedYaw to control Hoot instead of the raw left and right inputs.
  */
-// #define HOOT_YAW_FIX
+#define HOOT_YAW_FIX
 
 /**
  * Causes leaf particles to occasionally fall from trees which contain Hoot.

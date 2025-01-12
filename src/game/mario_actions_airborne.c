@@ -429,6 +429,21 @@ u32 common_air_action_step(struct MarioState *m, u32 landAction, s32 animation, 
 }
 
 s32 act_jump(struct MarioState *m) {
+    #ifdef EASIER_LONG_JUMPS
+        if (m->actionTimer < 1) {
+            m->actionTimer++;
+            if (m->input & INPUT_Z_PRESSED && m->forwardVel > 10.0f) {
+                return set_jumping_action(m, ACT_LONG_JUMP, 0);
+            }
+        }
+    #endif
+    
+    if (m->curCharacter == 2 || m->curCharacter == 3)  {
+        if (m->input & INPUT_A_DOWN && m->vel[1] < 0.0f && gMarioState->action != ACT_FLUTTER) {
+            return set_mario_action(m, ACT_FLUTTER, 0);
+        }
+    }
+
     if (check_kick_or_dive_in_air(m)) {
         return TRUE;
     }

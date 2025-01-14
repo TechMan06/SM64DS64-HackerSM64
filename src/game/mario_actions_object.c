@@ -145,6 +145,10 @@ s32 mario_update_punch_sequence(struct MarioState *m) {
 }
 
 s32 act_punching(struct MarioState *m) {
+    if (m->curCharacter == 3) {
+        return set_mario_action(m, ACT_EATING, 0);
+    }
+
     if (m->input & INPUT_STOMPED) {
         return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
@@ -450,6 +454,85 @@ s32 check_common_object_cancels(struct MarioState *m) {
     return FALSE;
 }
 
+s32 act_eating(struct MarioState *m) {
+    u32 endAction, crouchEndAction;
+    s32 animFrame;
+
+    if (m->action & ACT_FLAG_MOVING) {
+        endAction = ACT_WALKING, crouchEndAction = ACT_CROUCH_SLIDE;
+    } else {
+        endAction = ACT_IDLE, crouchEndAction = ACT_CROUCHING;
+    }
+
+    if (m->input & INPUT_STOMPED) {
+        return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
+    }
+
+    play_sound_if_no_flag(m, SOUND_MARIO_PUNCH_YAH, MARIO_MARIO_SOUND_PLAYED);
+    set_mario_animation(m, YOSHI_ANIM_EATING);
+
+    if (is_anim_at_end(m)) {
+        set_mario_action(m, endAction, 0);
+    }
+
+    if (m->marioObj->header.gfx.animInfo.animFrame >= 2) {
+        if (mario_check_object_grab(m)) {
+            return TRUE;
+        }
+
+        m->flags |= MARIO_PUNCHING;
+    }
+
+    if (m->forwardVel > 0.0f) {
+        m-> forwardVel /= 1.5;
+    }
+
+    perform_ground_step(m);
+    update_walking_speed(m);
+
+    return FALSE;
+}
+
+s32 act_eating_up(struct MarioState *m) {
+    u32 endAction, crouchEndAction;
+    s32 animFrame;
+
+    if (m->action & ACT_FLAG_MOVING) {
+        endAction = ACT_WALKING, crouchEndAction = ACT_CROUCH_SLIDE;
+    } else {
+        endAction = ACT_IDLE, crouchEndAction = ACT_CROUCHING;
+    }
+
+    if (m->input & INPUT_STOMPED) {
+        return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
+    }
+
+    play_sound_if_no_flag(m, SOUND_MARIO_HRMM, MARIO_MARIO_SOUND_PLAYED);
+    //set_mario_animation(m, YOSHI_ANIM_EATING);
+
+    if (is_anim_at_end(m)) {
+        set_mario_action(m, endAction, 0);
+    }
+
+    if (m->marioObj->header.gfx.animInfo.animFrame >= 2) {
+        if (mario_check_object_grab(m)) {
+            return TRUE;
+        }
+
+        m->flags |= MARIO_PUNCHING;
+    }
+
+    if (m->forwardVel > 0.0f) {
+        m-> forwardVel /= 1.5;
+    }
+
+    perform_ground_step(m);
+    update_walking_speed(m);
+
+    return FALSE;
+}
+
+
 s32 mario_execute_object_action(struct MarioState *m) {
     s32 cancel = FALSE;
 
@@ -473,6 +556,8 @@ s32 mario_execute_object_action(struct MarioState *m) {
         case ACT_PICKING_UP_BOWSER:  cancel = act_picking_up_bowser(m);  break;
         case ACT_HOLDING_BOWSER:     cancel = act_holding_bowser(m);     break;
         case ACT_RELEASING_BOWSER:   cancel = act_releasing_bowser(m);   break;
+        case ACT_EATING:             cancel = act_eating(m);             break;
+        case ACT_EATING_UP:          cancel = act_eating_up(m);          break;
     }
     /* clang-format on */
 

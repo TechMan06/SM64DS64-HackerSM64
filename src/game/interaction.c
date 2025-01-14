@@ -382,7 +382,7 @@ u32 able_to_grab_object(struct MarioState *m, UNUSED struct Object *obj) {
         if (!(obj->oInteractionSubtype & INT_SUBTYPE_GRABS_MARIO)) {
             return TRUE;
         }
-    } else if (action == ACT_PUNCHING || action == ACT_MOVE_PUNCHING) {
+    } else if (action == ACT_PUNCHING || action == ACT_MOVE_PUNCHING || action == ACT_EATING || action == ACT_EATING_AIR) {
         if (m->actionArg < 2) {
             return TRUE;
         }

@@ -539,7 +539,7 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
     if ((stepArg & AIR_STEP_CHECK_LEDGE_GRAB) && upperWall.numWalls == 0 && lowerWall.numWalls != 0) {
         for (i = 0; i < lowerWall.numWalls; i++) {
             grabbedWall = check_ledge_grab(m, grabbedWall, lowerWall.walls[i], intendedPos, nextPos, ledgePos, &ledgeFloor);
-            if (grabbedWall != NULL) {
+            if (grabbedWall != NULL && m->heldObj == NULL) {
                 stepResult = AIR_STEP_GRABBED_LEDGE;
             }
         }

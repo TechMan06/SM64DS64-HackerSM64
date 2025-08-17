@@ -19,5 +19,4 @@ This project is open-source so anyone can compile and enjoy it throughout its de
 ## Credits:
 - AquariusAlexx (HUD for Wario and Yoshi, Yoshi 3D model).
 - FluffaMario (Wario, Luigi 3D models and HUD for Luigi).
-- Dominicentek (Set me up with the basics, without him this project would not be possible at all).
-- Excellent Gamer (Programming, creator of https://github.com/ExcellentGamer/Super-Mario-64-DS-Remastered).
+- Dominicentek (Set me up with the basics, without them this project would not be possible at all).

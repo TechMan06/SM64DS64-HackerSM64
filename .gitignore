@@ -2152,3 +2152,5 @@ lib/libs2d_engine.a
 
 # user-specific config file
 include/config/config_local.h
+baserom.eu.n64
+baseroom.jp.n64

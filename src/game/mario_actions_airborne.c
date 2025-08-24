@@ -2184,7 +2184,12 @@ s32 act_eating_air(struct MarioState *m) {
 
     if (m->marioObj->header.gfx.animInfo.animFrame >= 2) {
         if (mario_check_object_grab(m)) {
-            return TRUE;
+            mario_grab_used_object(m);
+            m->marioBodyState->grabPos = GRAB_POS_LIGHT_OBJ;
+            
+            if (m->action != ACT_EATING_AIR) {
+                return TRUE;
+            }
         }
 
         m->flags |= MARIO_PUNCHING;

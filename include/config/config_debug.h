@@ -69,7 +69,7 @@
  * Same as above, but also reads all save file flags as complete.
  * This will not overwrite existing save file data unless you save over it.
  */
-// #define COMPLETE_SAVE_FILE
+#define COMPLETE_SAVE_FILE
 
 /**
  * Removes the limit on FPS.
@@ -79,7 +79,7 @@
 /**
  * Includes vanilla debug functionality.
  */
-//#define VANILLA_DEBUG
+// #define VANILLA_DEBUG
 
 /**
  * Forces a crash when the game starts. Useful for debugging the crash screen.
